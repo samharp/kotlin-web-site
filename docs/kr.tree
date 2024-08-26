@@ -22,6 +22,7 @@
         <toc-element id="kotlin-tour-intermediate-functions.md" hidden="true"/>
         <toc-element id="kotlin-tour-intermediate-classes.md" hidden="true"/>
         <toc-element id="kotlin-tour-intermediate-properties.md" hidden="true"/>
+        <toc-element id="kotlin-tour-intermediate-null-safety.md" hidden="true"/>
     </toc-element>
 
     <toc-element toc-title="Kotlin overview">

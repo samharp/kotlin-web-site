@@ -52,14 +52,78 @@ fun main() {
 {kotlin-runnable="true"}
 
 You can explicitly cast an object to a non-nullable type with the `as` operator. However, if the cast isn't possible then
-the compiler throws an error. This why this operator is called the **unsafe** operator.
+the compiler throws an error. This is why it's called the **unsafe** operator.
 
+```kotlin
+fun main() {
+//sampleStart
+    val a: String? = null
+    val b = a as String
+  
+    // Triggers an error
+    print(b)
+//sampleEnd
+}
+```
+{kotlin-runnable="true" validate="false"}
 
 To explicitly cast an object to a non-nullable type, but return null instead of throwing an error on failure, use the `as?`
-operator. Since the `as?` operator doesn't trigger an error on failure, it os called the **safe** operator.
+operator. Since the `as?` operator doesn't trigger an error on failure, it is called the **safe** operator.
 
+```kotlin
+fun main() {
+//sampleStart
+    val a: String? = null
+    val b = a as? String
+  
+    // Returns null value
+    print(b)
+    // null
+//sampleEnd
+}
+```
+{kotlin-runnable="true"}
 
-`as` `as?`
+The `as?` operator can be combined with the Elvis operator `?:`, to reduce several lines of code to one. For example,
+the following `calculateTotalStringLength()` function that calculates the total length of all strings provided in a mixed list,
+can be reduced from:
+
+```kotlin
+fun calculateTotalStringLength(items: List<Any>): Int {
+    var totalLength = 0
+
+    for (item in items) {
+        totalLength += if (item is String) {
+            item.length
+        } else {
+            0  // Add 0 for non-String items
+        }
+    }
+
+    return totalLength
+}
+```
+
+To:
+```kotlin
+fun calculateTotalStringLength(items: List<Any>): Int {
+    return items.sumOf { (it as? String)?.length ?: 0 }
+}
+```
+
+In the first version, the example:
+* Uses the `totalLength` variable as a counter.
+* Uses a `for` loop to loop through every item in the list.
+* Uses an `if` and the `is` operator to check if the current item is a string:
+  * If it is, the string's length is added to the counter.
+  * If it is not, the counter isn't incremented.
+* Returns the final value of the `totalLength` variable.
+
+In the reduced version, the example uses the `.sumOf()` extension function and provides a lambda expression that:
+* Accesses each item via the `it` keyword.
+* Performs a safe cast to `String` using `as?`.
+* Uses a safe call `?.` to access the `length` property if the call doesn't return a `null` value.
+* Uses the Elvis operator `?:` to return `0` if the safe call does return a `null` value.
 
 ## Filter null values from collections
 
