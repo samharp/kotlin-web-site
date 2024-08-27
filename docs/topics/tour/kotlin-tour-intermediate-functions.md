@@ -2,12 +2,11 @@
 
 ## Extension functions
 
-When programming, you may find yourself wanting to work with code without modifying the original source. You could duplicate
-the code and then customize it the way you want. However, this is time-consuming and inefficient. Kotlin offers an 
-alternative approach via **extension functions**.
+In software development, you often need to modify the behavior of a program without altering the original source code. 
+For example, in your project, you might want to add additional functionality to a class from a third-party library.
 
-Extension functions allow you to extend a class with additional functionality. You call extension functions as if they
-are member functions of a class, but you define what the function does.
+Extension functions allow you to extend a class with additional functionality. You call extension functions as if they 
+are member functions of a class.
 
 Before introducing the syntax for extension functions, you need to understand the terms **receiver type** and 
 **receiver object**.
@@ -28,11 +27,11 @@ your function. For example: `fun String.bold()`
 
 In the following example:
 * `String` is the class that is extended, also known as the receiver type.
-* the `.bold()` extension function's return type is `String`.
-* an instance of `String` is the receiver object.
-* the receiver object is accessed by the [keyword](keyword-reference.md): `this`.
-* a string template (`$`) is used to access the value of `this`.
-* the `.bold()` extension function takes a string and returns it in a `<b>` HTML element for bold text.
+* The `.bold()` extension function's return type is `String`.
+* An instance of `String` is the receiver object.
+* The receiver object is accessed by the [keyword](keyword-reference.md): `this`.
+* A string template (`$`) is used to access the value of `this`.
+* The `.bold()` extension function takes a string and returns it in a `<b>` HTML element for bold text.
 
 ```kotlin
 fun String.bold(): String = "<b>$this</b>"
@@ -49,55 +48,64 @@ You can find many examples of extension functions in Kotlin's [standard library]
 For example, the `String` class has many [extension functions](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/#extension-functions)
 to help you work with strings.
 
-### Extension function or member function?
+### Extension-oriented design
 
-When you see a function called with a `.`, it's not immediately obvious whether it's an extension function or a member function.
+Extension functions can be defined anywhere, enabling you to create extension-oriented designs. Such designs separate 
+core functionality from useful but non-essential features, making your code easier to read and maintain.
 
-For example:
+For example, consider the `Rectangle` class:
+
 ```kotlin
-fun main() {
-//sampleStart
-    val testString = "hello"
-    // hashCode() is a member function
-    println(testString.hashCode())
-    // count() is an extension function
-    println(testString.count())
-//sampleEnd
+class Rectangle(val width: Double, val height: Double) {
+
+    fun area(): Double {
+        return width * height
+    }
+
+    fun perimeter(): Double {
+        return 2 * (width + height)
+    }
+
+    fun isSquare(): Boolean {
+        return width == height
+    }
+    fun scale(factor: Double): Rectangle {
+        return Rectangle(width * factor, height * factor)
+    }
 }
 ```
 
-Always check the function definition to understand whether it's an extension function or a member function:
-
-<table header-style="top">
-   <tr>
-       <td>Member function</td>
-       <td>Extension function</td>
-   </tr>
-   <tr>
-<td>
+Let's say that the `area()` and `perimeter()` functions are essential to the `Rectangle` class, while the `isSquare()` 
+and `scale()` functions are additional utility functions. To adopt an extension-oriented design, you can move the `isSquare()`
+and `scale()` member functions out of the class and convert them into extension functions:
 
 ```kotlin
-class String : Comparable<String>, CharSequence {
-    fun hashCode(): Int
+class Rectangle(val width: Double, val height: Double) {
+
+    fun area(): Double {
+        return width * height
+    }
+
+    fun perimeter(): Double {
+        return 2 * (width + height)
+    }
+}
+
+// Extension functions
+fun Rectangle.isSquare(): Boolean {
+    return width == height
+}
+
+fun Rectangle.scale(factor: Double): Rectangle {
+    return Rectangle(width * factor, height * factor)
 }
 ```
 
-</td>
-<td>
+Now it is immediately clear which functions are considered essential to the class and which functions are useful but not critical.
 
-```kotlin
-fun CharSequence.count(): Int {
-    return length
-}
-```
-
-</td>
-</tr>
-</table>
-
-The compiler doesn't allow you to declare an extension function that has the same receiver type, name, and arguments as
-an already existing member function. If an extension function and a member function have the same name, the member function
-takes priority.
+This extension-oriented approach is widely used in Kotlin's [standard library](https://kotlinlang.org/api/latest/jvm/stdlib/)
+and other libraries. For example, the `String` class has many [extension functions](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/#extension-functions)
+to help you work with strings.
 
 For more information about extension functions, see [Extensions](extensions.md).
 
@@ -119,7 +127,7 @@ Each scope function takes a lambda expression and returns either the object or t
 this tour, we explain each scope function with a recommendation for how to use it.
 
 > If you prefer, the information in this section is also presented in a YouTube video by our developer advocate: Sebastian Aigner.
-> To learn more, watch [Back to the Stdlib: Making the Most of Kotlin’s Standard Library](https://youtu.be/DdvgvSHrN9g?feature=shared&t=1511).
+> To learn more, watch [Back to the Stdlib: Making the Most of Kotlin's Standard Library](https://youtu.be/DdvgvSHrN9g?feature=shared&t=1511).
 > 
 {type ="tip"}
 
@@ -159,7 +167,7 @@ The compiler reports an error as a result:
 Type mismatch: inferred type is String? but String was expected
 ```
 
-From the beginner tour, you already know that you can perform a null check with an if condition or use the [elvis operator](kotlin-tour-null-safety.md#use-elvis-operator). 
+From the beginner tour, you already know that you can perform a null check with an if condition or use the [Elvis operator](kotlin-tour-null-safety.md#use-elvis-operator). 
 But what if you want to use the returned object later on in your code? You could achieve this with an if condition **and** an 
 else branch:
 
@@ -485,8 +493,8 @@ In the beginner's tour, you learned how to use [lambda expressions](kotlin-tour-
 your code more concise. A lambda expression is an example of a **function literal** in Kotlin. 
 
 A function literal is a function that is declared:
-* without a name.
-* as an expression.
+* Without a name.
+* As an expression.
 
 For example, consider the first lambda expression that you saw in the beginner's tour:
 
