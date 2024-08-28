@@ -89,5 +89,5 @@ See [Opt-in requirements](opt-in-requirements.md) for more details.
 
 ## What's next
 
-* [Read more about the new memory manager](native-memory-manager.md)
-* [Learn about the specifics of iOS memory management](native-ios-memory-management.md)
+* [Learn more about the new memory manager](native-memory-manager.md)
+* [Check the specifics of integration with Swift/Objective-C ARC](native-arc-integration.md)
