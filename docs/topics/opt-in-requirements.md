@@ -1,7 +1,7 @@
 [//]: # (title: Opt-in requirements)
 
 The Kotlin standard library provides a mechanism for requiring and giving explicit consent to use certain API elements.
-This mechanism allows library developers to inform users of their library about specific conditions that require opt-in,
+This mechanism allows library developers to inform users about specific conditions that require opt-in,
 such as when an API is in an experimental state and is likely to change in the future. 
 
 To protect users, the compiler warns about these conditions and requires them to opt in before the API can be used.
@@ -10,12 +10,12 @@ To protect users, the compiler warns about these conditions and requires them to
 
 If a library author marks a declaration from their library's API as _[requiring opt-in](#require-opt-in-to-use-api)_,
 you must give explicit consent before you can use it in your code.
-There are several ways to opt in. We recommend that you choose the way that best suits your situation. 
+There are several ways to opt in. We recommend choosing the approach that best suits your situation.
 
 ### Opt in locally
 
 To opt in to a specific API element when you use it in your code, use the `@OptIn` annotation with a reference to the API
-element. For example, let's say that you want to use the `DateProvider` class, which requires an opt-in:
+element. For example, suppose you want to use the `DateProvider` class, which requires an opt-in:
 
 ```kotlin
 // Library code
@@ -40,7 +40,7 @@ fun getDate(): Date { // Uses DateProvider
 }
 ```
 
-It's important to note that with this method, if the `getDate()` function is called elsewhere in your code or used by 
+It's important to note that with this approach, if the `getDate()` function is called elsewhere in your code or used by 
 another developer, no opt-in is required:
 
 ```kotlin
@@ -62,7 +62,7 @@ A safer approach is to propagate the opt-in requirements when you choose to opt 
 
 #### Propagate opt-in requirements
 
-When you use API in your code that's intended for third-party use, such as a library, you can propagate its opt-in requirement
+When you use API in your code that's intended for third-party use, such as in a library, you can propagate its opt-in requirement
 to your API as well. To do this, annotate your declaration with the _[opt-in requirement annotation](#create-opt-in-requirement-annotations)_ of the API used in its body.
 
 For example, let's use the `DateProvider` class from before, which requires an opt-in:
@@ -112,7 +112,7 @@ fun displayDate() {
 ```
 
 Note that if `@OptIn` applies to the declaration whose signature contains a type declared as requiring opt-in,
-the opt-in still propagates:
+the opt-in requirement still propagates:
 
 ```kotlin
 // Client code
@@ -241,10 +241,11 @@ To opt in to multiple APIs on the module level, add one of the described argumen
 
 Sometimes, a library author provides an API but wants to require users to explicitly opt in before they can extend it. 
 For example, to inherit from the API or add an implementation for an abstract function. Library authors can enforce this
-by marking open or abstract classes and non-functional interfaces with the `@SubclassOptInRequired` annotation.
+by marking [open](inheritance.md) or [abstract classes](classes.md#abstract-classes) and [non-functional interfaces](interfaces.md) with the [`@SubclassOptInRequired`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-subclass-opt-in-required/)
+annotation.
 
 To opt in to use such an API element and extend it in your code, use the `@SubclassOptInRequired` annotation
-with a reference to the API element. For example, suppose you want to use the `CoreLibraryApi` interface, which 
+with a reference to the annotation class. For example, suppose you want to use the `CoreLibraryApi` interface, which 
 requires an opt-in:
 
 ```kotlin
@@ -269,7 +270,7 @@ interface SomeImplementation : CoreLibraryApi
 ```
 
 Note that when you use the `@SubclassOptInRequired` annotation on a class, the opt-in requirement is not propagated to 
-any inner or nested classes:
+any [inner or nested classes](nested-classes.md):
 
 ```kotlin
 // Library code
@@ -288,7 +289,7 @@ class NetworkFileSystem : FileSystem() // Opt-in is required
 class TextFile : FileSystem.File() // No opt-in required
 ```
 
-Alternatively, you can also opt in by using the `@OptIn` annotation or an annotation that references the opt-in annotation
+Alternatively, you can also opt in by using the `@OptIn` annotation, or an annotation that references the opt-in annotation
 class to propagate the requirement further in your code:
 
 ```kotlin
@@ -362,6 +363,39 @@ Note that for some language elements, an opt-in requirement annotation is not ap
 
 ## Require opt-in to extend API
 
+There may be times when you want more granular control over which specific parts of your API can be used and
+extended. For example, when you have some API that is stable to use but:
+
+* **Unstable to implement** due to ongoing evolution, such as when you have a family of interfaces where you expect to add new abstract functions without default implementations.
+* **Closed to third-party implementations** due to internal or technical reasons, such as an API that you want to be sealed but can't for technical reasons.
+* **Delicate or fragile to implement**, such as individual functions that need to behave in a coordinated manner.
+* **Has a contract that may be weakened in the future** in a backwards-incompatible manner for external implementations, such as changing an input parameter `T` to a nullable version `T?` where the code didn't previously consider `null` values.
+
+In such cases, you want to require users to opt in to your API before they can extend it further.
+For example, by inheriting from the API or declaring implementations for abstract functions. Using the [`@SubclassOptInRequired`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-subclass-opt-in-required/)
+annotation, you can enforce this behavior for [open](inheritance.md) or [abstract classes](classes.md#abstract-classes) and [non-functional interfaces](interfaces.md).
+
+To add the opt-in requirement to an API element, use the [`@SubclassOptInRequired`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-subclass-opt-in-required/)
+annotation with a reference to the annotation class:
+
+```kotlin
+@RequiresOptIn(
+ level = RequiresOptIn.Level.WARNING,
+ message = "Interfaces in this library are experimental"
+)
+annotation class UnstableApi()
+
+@SubclassOptInRequired(UnstableApi::class)
+interface CoreLibraryApi // An interface requiring opt-in to extend
+```
+
+Note that when you use the `@SubclassOptInRequired` annotation to require opt-in, the requirement is not propagated to
+any [inner or nested classes](nested-classes.md).
+
+For a real-world example of how to use the `@SubclassOptInRequired` annotation in your API, check out the
+[`SharedFlow`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-shared-flow/)
+interface in the `kotlinx.coroutines` library.
+
 ## Opt-in requirements for pre-stable APIs
 
 If you use opt-in requirements for features that are not stable yet, carefully handle the API graduation to avoid 
@@ -371,7 +405,7 @@ Once your pre-stable API graduates and is released in a stable state, remove any
 your declarations. The clients can then use them without restriction. However, you should leave the annotation classes 
 in modules so that the existing client code remains compatible.
 
-To encourage API users update their modules by remove any annotations from their code and recompiling, mark the annotations
+To encourage API users to update their modules by removing any annotations from their code and recompiling, mark the annotations
 as [`@Deprecated`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-deprecated/) and provide an explanation in the deprecation message.
 
 ```kotlin
