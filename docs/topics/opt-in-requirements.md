@@ -8,7 +8,7 @@ To protect users, the compiler warns about these conditions and requires them to
 
 ## Opt in to API
 
-If a library author marks a declaration from their library's API as _[requiring opt-in](#require-opt-in-for-api)_,
+If a library author marks a declaration from their library's API as _[requiring opt-in](#require-opt-in-to-use-api)_,
 you must give explicit consent before you can use it in your code.
 There are several ways to opt in. We recommend that you choose the way that best suits your situation. 
 
@@ -237,7 +237,73 @@ For Maven, use the following:
 
 To opt in to multiple APIs on the module level, add one of the described arguments for each opt-in requirement marker used in your module.
 
-## Require opt-in for API 
+### Opt in to inherit from a class or interface
+
+Sometimes, a library author provides an API but wants to require users to explicitly opt in before they can extend it. 
+For example, to inherit from the API or add an implementation for an abstract function. Library authors can enforce this
+by marking open or abstract classes and non-functional interfaces with the `@SubclassOptInRequired` annotation.
+
+To opt in to use such an API element and extend it in your code, use the `@SubclassOptInRequired` annotation
+with a reference to the API element. For example, suppose you want to use the `CoreLibraryApi` interface, which 
+requires an opt-in:
+
+```kotlin
+// Library code
+@RequiresOptIn(
+ level = RequiresOptIn.Level.WARNING,
+ message = "Interfaces in this library are experimental"
+)
+annotation class UnstableApi()
+
+@SubclassOptInRequired(UnstableApi::class)
+interface CoreLibraryApi // An interface requiring opt-in to extend
+```
+
+In your code, before creating a new interface that inherits from the `CoreLibraryApi` interface, add the `@SubclassOptInRequired`
+annotation with a reference to the `UnstableApi` annotation class:
+
+```kotlin
+// Client code
+@SubclassOptInRequired(UnstableApi::class)
+interface SomeImplementation : CoreLibraryApi
+```
+
+Note that when you use the `@SubclassOptInRequired` annotation on a class, the opt-in requirement is not propagated to 
+any inner or nested classes:
+
+```kotlin
+// Library code
+@RequiresOptIn
+annotation class ExperimentalFeature
+
+@SubclassOptInRequired(ExperimentalFeature::class)
+open class FileSystem {
+    open class File
+}
+
+// Client code
+class NetworkFileSystem : FileSystem() // Opt-in is required
+
+// Nested class
+class TextFile : FileSystem.File() // No opt-in required
+```
+
+Alternatively, you can also opt in by using the `@OptIn` annotation or an annotation that references the opt-in annotation
+class to propagate the requirement further in your code:
+
+```kotlin
+// Client code
+// With @OptIn annotation
+@OptInRequired(UnstableApi::class)
+interface SomeImplementation : CoreLibraryApi
+
+// With annotation referencing annotation class
+// Propagates the opt-in requirement further
+@UnstableApi
+interface SomeImplementation : CoreLibraryApi
+```
+
+## Require opt-in to use API 
 
 ### Create opt-in requirement annotations
 
@@ -293,6 +359,8 @@ Note that for some language elements, an opt-in requirement annotation is not ap
 
 * You can't annotate a backing field or a getter of a property, just the property itself.
 * You can't annotate a local variable or a value parameter.
+
+## Require opt-in to extend API
 
 ## Opt-in requirements for pre-stable APIs
 
